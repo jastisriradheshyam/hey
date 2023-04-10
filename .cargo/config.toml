@@ -1,0 +1,6 @@
+
+[net]
+git-fetch-with-cli = true
+
+[source.crates-io]
+registry = "git://github.com/rust-lang/crates.io-index.git"
