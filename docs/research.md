@@ -20,3 +20,8 @@
   - (OS in std::env::consts - Rust)[https://doc.rust-lang.org/std/env/consts/constant.OS.html]
 - ARCH
   - (ARCH in std::env::consts - Rust)[https://doc.rust-lang.org/std/env/consts/constant.ARCH.html]
+
+
+## Similar solutions
+
+- https://github.com/arctic-hen7/bonnie
