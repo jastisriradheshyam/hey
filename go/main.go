@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"hey/execution"
 	"hey/management"
 	"hey/misc"
@@ -33,7 +32,6 @@ func main() {
 
 					args := c.Args().Get(0)
 					parsedRunArgs := misc.ParseRunArguments(args)
-					fmt.Println(len(parsedRunArgs), parsedRunArgs)
 					if len(parsedRunArgs) <= 0 {
 						log.Fatal("Run Arguments are not present")
 						os.Exit(1)

@@ -62,7 +62,6 @@ func (modules *Modules) ProcessTask(moduleName string, taskName string) {
 		log.Fatal(fmt.Sprintf("Task: %s is not present in the module: %s", taskName, moduleName))
 		os.Exit(1)
 	}
-	fmt.Println((*modules)[moduleName].Tasks[taskName])
 	task := *(*modules)[moduleName].Tasks[taskName]
 	executeCommand((*task.Commands)[0].Name, (*task.Commands)[0].Args...)
 }
