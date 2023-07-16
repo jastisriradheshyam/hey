@@ -1,0 +1,17 @@
+version: 1
+meta:
+  description: ""
+tasks:
+  ls:
+    default_env:
+      - type: spawn
+        spawn_info:
+          name: ls
+          args:
+            - -alh
+    linux:
+      - type: spawn
+        spawn_info:
+          name: ls
+          args:
+            - -alh

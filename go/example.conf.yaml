@@ -1,8 +1,0 @@
-version: 1
-
-tasks:
-  ls:
-    type: 'command'
-    commands:
-      - name: 'ls'
-        args: '-alh'
