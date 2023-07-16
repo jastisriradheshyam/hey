@@ -81,5 +81,9 @@ func (modules *Modules) ProcessTask(moduleName string, taskName string) {
 		os.Exit(1)
 	}
 	task := *(*modules)[moduleName].Tasks[taskName]
-	executeCommand((*task.SubTasks[0]).SpawnInfo.Name, (*task.SubTasks[0]).SpawnInfo.Args...)
+	for _, subTask := range task.SubTasks {
+		if subTask.TaskType == "spawn" {
+			executeCommand(subTask.SpawnInfo.Name, subTask.SpawnInfo.Args...)
+		}
+	}
 }
