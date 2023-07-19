@@ -24,6 +24,14 @@ func getConfigRootDir() (string, error) {
 	return path.Join(homeDir, ".hey"), nil
 }
 
+func getModulesRootDir() (string, error) {
+	homeDir, err := getUserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return path.Join(homeDir, ".hey", "modules"), nil
+}
+
 // valid values for pathType are "dir" and "file"
 func pathExists(path string, pathType string) (bool, error) {
 	stat, err := os.Stat(path)
@@ -47,23 +55,39 @@ func getConfigPath(moduleName string, configDir string) string {
 }
 
 func initDefaultConfig() {
-	rootConfigDir, err := getConfigRootDir()
+	rootModulesDir, err := getModulesRootDir()
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	defaultConfigPath := getConfigPath("default", rootConfigDir)
+	defaultModulePath := getConfigPath("default", rootModulesDir)
 	data, err := configMod.GetBlankConfigYaml()
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	if err := os.WriteFile(defaultConfigPath, data, 0o644); err != nil {
+	if err := os.WriteFile(defaultModulePath, data, 0o644); err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
 }
 
+func initModules() {
+	rootModulesDir, err := getModulesRootDir()
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	if err := os.RemoveAll(rootModulesDir); err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	if err := os.Mkdir(rootModulesDir, 0o755); err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	initDefaultConfig()
+}
 func initConfig() {
 	rootConfigDir, err := getConfigRootDir()
 	if err != nil {
@@ -78,16 +102,16 @@ func initConfig() {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	initDefaultConfig()
+	initModules()
 }
 
-func checkModuleExists(moduleName string, configDir string) (bool, error) {
-	configPath := getConfigPath(moduleName, configDir)
+func checkModuleExists(moduleName string, modulesDir string) (bool, error) {
+	configPath := getConfigPath(moduleName, modulesDir)
 	return pathExists(configPath, "file")
 }
 
-func GetConfigModuleBytes(moduleName string, configDir string) []byte {
-	configPath := getConfigPath(moduleName, configDir)
+func GetConfigModuleBytes(moduleName string, modulesDir string) []byte {
+	configPath := getConfigPath(moduleName, modulesDir)
 	configBytes, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Fatal(err)
@@ -103,15 +127,27 @@ func CheckAndInit() {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	check, err := pathExists(configDir, "dir")
+	modulesDir, err := getModulesRootDir()
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	if !check {
+	configCheck, err := pathExists(configDir, "dir")
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	modulesCheck, err := pathExists(modulesDir, "dir")
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	if !configCheck {
 		initConfig()
+	} else if !modulesCheck {
+		initModules()
 	} else {
-		check, err = checkModuleExists("default", configDir)
+		check, err := checkModuleExists("default", modulesDir)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
@@ -123,8 +159,8 @@ func CheckAndInit() {
 }
 
 func GetConfigModule(module string) configMod.CurrentConfigSchema {
-	configDir, err := getConfigRootDir()
-	check, err := checkModuleExists(module, configDir)
+	modulesDir, err := getModulesRootDir()
+	check, err := checkModuleExists(module, modulesDir)
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
@@ -133,7 +169,7 @@ func GetConfigModule(module string) configMod.CurrentConfigSchema {
 		log.Fatal(fmt.Sprintf("%s does not exists", module))
 		os.Exit(1)
 	}
-	configModuleBytes := GetConfigModuleBytes(module, configDir)
+	configModuleBytes := GetConfigModuleBytes(module, modulesDir)
 	configModuleVersion := configMod.GetConfigVersion(configModuleBytes)
 	if configModuleVersion != configMod.CURRENT_CONFIG_VERSION {
 		log.Fatal(fmt.Sprintf("version %d in module is not compatible to current supported version %d", configModuleVersion, configMod.CURRENT_CONFIG_VERSION))

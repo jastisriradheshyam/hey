@@ -26,14 +26,18 @@ func executeCommand(command string, args ...string) {
 		return
 	}
 
-	cmd.Start()
-	oneRune := make([]byte, utf8.UTFMax)
+	err = cmd.Start()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	oneRuneStdout := make([]byte, utf8.UTFMax)
 	for {
-		count, err := stdoutPipe.Read(oneRune)
+		count, err := stdoutPipe.Read(oneRuneStdout)
 		if err != nil {
 			break
 		}
-		fmt.Printf("%s", oneRune[:count])
+		fmt.Printf("%s", oneRuneStdout[:count])
 	}
 
 	oneRuneStderr := make([]byte, utf8.UTFMax)
