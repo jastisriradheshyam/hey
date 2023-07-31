@@ -3,15 +3,26 @@ meta:
   description: ""
 tasks:
   ls:
-    default_env:
+    default:
       - type: spawn
-        spawn_info:
+        context:
           name: ls
           args:
             - -alh
     linux:
       - type: spawn
-        spawn_info:
+        context:
           name: ls
           args:
             - -alh
+  test_env:
+    default:
+      - type: spawn
+        context:
+          env_vars:
+            - key: 'hello'
+              value: 'something'
+          name: bash
+          args:
+            - "-c"
+            - "echo $hello"

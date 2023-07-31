@@ -25,6 +25,33 @@ func GetConfig(config []byte) CurrentConfigSchema {
 	if err != nil {
 		panic(err)
 	}
+	for taskKey := range configModule.Tasks {
+		for envName := range configModule.Tasks[taskKey] {
+			for index := range configModule.Tasks[taskKey][envName] {
+				contextBytes, err := yaml.Marshal(configModule.Tasks[taskKey][envName][index].Context)
+				if err != nil {
+					panic(err)
+				}
+				// If uncommented this will make type based context (e.g. spawn_info) usage in config,
+				// else overwrite the type based context with context value, which will make consistent
+				// way to set configuration
+				// if len(contextBytes) == 0 {
+				// 	continue
+				// }
+				if configModule.Tasks[taskKey][envName][index].TaskType == "spawn" {
+					var spawnInfo schemas.SpawnInfo
+					err = yaml.Unmarshal(contextBytes, &spawnInfo)
+					if err != nil {
+						panic(err)
+					}
+					configModule.Tasks[taskKey][envName][index].SpawnInfo = spawnInfo
+				}
+				// Remove context data to clean up the memory
+				var blankInterface interface{}
+				configModule.Tasks[taskKey][envName][index].Context = blankInterface
+			}
+		}
+	}
 	return configModule
 }
 

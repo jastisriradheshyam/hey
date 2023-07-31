@@ -5,13 +5,20 @@ type EnvName string
 type Task map[EnvName][]SubTask
 
 type SubTask struct {
-	TaskType  string    `yaml:"type"`
-	SpawnInfo SpawnInfo `yaml:"spawn_info"`
+	TaskType  string      `yaml:"type"`
+	Context   interface{} `yaml:"context"`
+	SpawnInfo SpawnInfo   `yaml:"spawn_info"`
+}
+
+type EnvVar struct {
+	Key   string `yaml:"key"`
+	Value string `yaml:"value"`
 }
 
 type SpawnInfo struct {
-	Name string   `yaml:"name"`
-	Args []string `yaml:"args"`
+	Name    string   `yaml:"name"`
+	Args    []string `yaml:"args"`
+	EnvVars []EnvVar `yaml:"env_vars"`
 }
 
 type Meta struct {

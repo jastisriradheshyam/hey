@@ -10,8 +10,9 @@ import (
 )
 
 type SpawnInfo struct {
-	Name string
-	Args []string
+	Name    string
+	Args    []string
+	EnvVars map[string]string
 }
 
 type SubTask struct {
@@ -51,17 +52,23 @@ func (modules *Modules) LoadModule(moduleName string) {
 		task.Name = taskNameConfig
 
 		// Check if current exec env present in the config
-		env := config_schemas.EnvName(runtime.GOOS)
-		if _, ok := taskConfig[env]; !ok {
-			env = config_schemas.EnvName("default_env")
+		osName := config_schemas.EnvName(runtime.GOOS)
+		if _, ok := taskConfig[osName]; !ok {
+			osName = config_schemas.EnvName("default")
 		}
-		for _, subTaskConfig := range taskConfig[env] {
+		for _, subTaskConfig := range taskConfig[osName] {
 			var subTask SubTask
 			subTask.TaskType = subTaskConfig.TaskType
 			if subTask.TaskType == "spawn" {
 				var spawnInfo SpawnInfo
 				spawnInfo.Name = subTaskConfig.SpawnInfo.Name
 				spawnInfo.Args = subTaskConfig.SpawnInfo.Args
+				spawnInfo.EnvVars = map[string]string{}
+				for _, envVar := range subTaskConfig.SpawnInfo.EnvVars {
+					key := envVar.Key
+					value := envVar.Value
+					spawnInfo.EnvVars[key] = value
+				}
 				subTask.SpawnInfo = &spawnInfo
 			}
 			subTasks = append(subTasks, &subTask)
@@ -83,7 +90,7 @@ func (modules *Modules) ProcessTask(moduleName string, taskName string) {
 	task := *(*modules)[moduleName].Tasks[taskName]
 	for _, subTask := range task.SubTasks {
 		if subTask.TaskType == "spawn" {
-			executeCommand(subTask.SpawnInfo.Name, subTask.SpawnInfo.Args...)
+			executeCommand(subTask.SpawnInfo.Name, subTask.SpawnInfo.EnvVars, subTask.SpawnInfo.Args...)
 		}
 	}
 }

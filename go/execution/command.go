@@ -2,14 +2,18 @@ package execution
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"unicode/utf8"
 )
 
-func executeCommand(command string, args ...string) {
+func executeCommand(command string, envVars map[string]string, args ...string) {
 	// Command to execute
 	cmd := exec.Command(command, args...)
-
+	cmd.Env = os.Environ()
+	for key, value := range envVars {
+		cmd.Env = append(cmd.Env, key+"="+value)
+	}
 	// Used if not record to be stored, directly piping to stream
 	// cmd.Stdout = os.Stdout
 	// cmd.Stderr = os.Stderr
