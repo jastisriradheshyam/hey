@@ -22,6 +22,7 @@ type SpawnInfo struct {
 }
 
 type Meta struct {
+	Type        string `yaml:"type"`
 	Description string `yaml:"description"`
 }
 

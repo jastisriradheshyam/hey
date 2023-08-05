@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"hey/execution"
 	"hey/management"
 	"hey/misc"
@@ -12,8 +13,15 @@ import (
 
 func main() {
 	management.CheckAndInit()
+	appName := "hey"
+
+	generateUsageText := func(text string) string {
+		return appName + " " + text
+	}
+
+	// in the cli config, "Usage" is short description (IDK why it's named Usage)
 	app := &cli.App{
-		Name:    "hey",
+		Name:    appName,
 		Usage:   "Easing CLI usage",
 		Version: "0.1.0",
 		Authors: []*cli.Author{
@@ -23,7 +31,8 @@ func main() {
 			{
 				Name:        "run",
 				Aliases:     []string{"r"},
-				Usage:       "use to run a set of command(s)",
+				Usage:       "execute the task",
+				UsageText:   generateUsageText("run moduleName.taskName"),
 				Description: "run command will run the named command(s) as configured",
 				Action: func(c *cli.Context) error {
 					var modulesPtr *execution.Modules
@@ -38,6 +47,39 @@ func main() {
 					}
 					module, taskName := misc.GetModuleAndCommandName(parsedRunArgs)
 					modulesPtr.ProcessTask(module, taskName)
+					return nil
+				},
+			},
+			{
+				Name:      "import",
+				Usage:     "imports configuration from a filepath",
+				UsageText: generateUsageText("import filepath"),
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+			{
+				Name:      "export",
+				Usage:     "exports configuration (in tar file with gz compression) to current directory or to specified path",
+				UsageText: generateUsageText("export export_path"),
+				Flags: []cli.Flag{
+					&cli.StringSliceFlag{
+						Name:  "exclude",
+						Usage: "exclude modules from the exporter archive",
+						Value: &cli.StringSlice{},
+					},
+				},
+				Action: func(c *cli.Context) error {
+					exportPath := c.Args().Get(0)
+					// flags := c.App.Flags
+					// c.Command.Flags
+					fmt.Println(c.Args())
+					excludeModules := c.StringSlice("exclude")
+					fmt.Println(excludeModules)
+					err := management.Export(exportPath, excludeModules)
+					if err != nil {
+						log.Fatal("Error : ", err)
+					}
 					return nil
 				},
 			},

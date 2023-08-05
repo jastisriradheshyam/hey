@@ -3,6 +3,7 @@ package management
 import (
 	"fmt"
 	configMod "hey/configuration"
+	utils "hey/utils"
 	"log"
 	"os"
 	"path"
@@ -30,24 +31,6 @@ func getModulesRootDir() (string, error) {
 		return "", err
 	}
 	return path.Join(homeDir, ".hey", "modules"), nil
-}
-
-// valid values for pathType are "dir" and "file"
-func pathExists(path string, pathType string) (bool, error) {
-	stat, err := os.Stat(path)
-	if err == nil {
-		if pathType == "dir" && stat.IsDir() {
-			return true, nil
-		}
-		if pathType == "file" {
-			return true, nil
-		}
-		return false, nil
-	}
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	return false, err
 }
 
 func getConfigPath(moduleName string, configDir string) string {
@@ -107,7 +90,7 @@ func initConfig() {
 
 func checkModuleExists(moduleName string, modulesDir string) (bool, error) {
 	configPath := getConfigPath(moduleName, modulesDir)
-	return pathExists(configPath, "file")
+	return utils.PathExistsByPathType(configPath, "file")
 }
 
 func GetConfigModuleBytes(moduleName string, modulesDir string) []byte {
@@ -132,12 +115,12 @@ func CheckAndInit() {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	configCheck, err := pathExists(configDir, "dir")
+	configCheck, err := utils.PathExistsByPathType(configDir, "dir")
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
-	modulesCheck, err := pathExists(modulesDir, "dir")
+	modulesCheck, err := utils.PathExistsByPathType(modulesDir, "dir")
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)

@@ -18,3 +18,7 @@ func GetModuleAndCommandName(parsedRunArgs []string) (string, string) {
 
 	return strings.Join(parsedRunArgs[0:(totalArgParsedLen-1)], "."), parsedRunArgs[totalArgParsedLen-1]
 }
+
+func ParseExportExcludeValues(excludeValues string) []string {
+	return []string{}
+}
