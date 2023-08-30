@@ -16,6 +16,9 @@ tasks:
           name: ls
           args:
             - -alh
+      - type: call_module
+        context:
+          name: test_env
   test_env:
     default:
       - type: spawn

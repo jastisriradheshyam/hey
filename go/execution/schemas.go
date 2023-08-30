@@ -1,11 +1,8 @@
 package execution
 
 import (
-	"fmt"
 	config_schemas "hey/configuration/schemas"
 	"hey/management"
-	"log"
-	"os"
 	"runtime"
 )
 
@@ -15,9 +12,14 @@ type SpawnInfo struct {
 	EnvVars map[string]string
 }
 
+type CallModuleInfo struct {
+	Name string
+}
+
 type SubTask struct {
-	TaskType  string
-	SpawnInfo *SpawnInfo
+	TaskType       string
+	SpawnInfo      *SpawnInfo
+	CallModuleInfo *CallModuleInfo
 }
 
 type Task struct {
@@ -71,26 +73,15 @@ func (modules *Modules) LoadModule(moduleName string) {
 				}
 				subTask.SpawnInfo = &spawnInfo
 			}
+			if subTask.TaskType == "call_module" {
+				var callModuleInfo CallModuleInfo
+				callModuleInfo.Name = subTaskConfig.CallModuleInfo.Name
+				subTask.CallModuleInfo = &callModuleInfo
+			}
 			subTasks = append(subTasks, &subTask)
 		}
 
 		task.SubTasks = subTasks
 		(*modules)[moduleName].Tasks[taskNameConfig] = &task
-	}
-}
-
-func (modules *Modules) ProcessTask(moduleName string, taskName string) {
-	if isModuleLoaded := modules.IsModuleLoaded(moduleName); !isModuleLoaded {
-		modules.LoadModule(moduleName)
-	}
-	if isTaskPresent := (*modules)[moduleName].IsTaskPresent(taskName); !isTaskPresent {
-		log.Fatal(fmt.Sprintf("Task: %s is not present in the module: %s", taskName, moduleName))
-		os.Exit(1)
-	}
-	task := *(*modules)[moduleName].Tasks[taskName]
-	for _, subTask := range task.SubTasks {
-		if subTask.TaskType == "spawn" {
-			executeCommand(subTask.SpawnInfo.Name, subTask.SpawnInfo.EnvVars, subTask.SpawnInfo.Args...)
-		}
 	}
 }

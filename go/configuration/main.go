@@ -46,6 +46,14 @@ func GetConfig(config []byte) CurrentConfigSchema {
 					}
 					configModule.Tasks[taskKey][envName][index].SpawnInfo = spawnInfo
 				}
+				if configModule.Tasks[taskKey][envName][index].TaskType == "call_module" {
+					var callModuleInfo schemas.CallModuleInfo
+					err = yaml.Unmarshal(contextBytes, &callModuleInfo)
+					if err != nil {
+						panic(err)
+					}
+					configModule.Tasks[taskKey][envName][index].CallModuleInfo = callModuleInfo
+				}
 				// Remove context data to clean up the memory
 				var blankInterface interface{}
 				configModule.Tasks[taskKey][envName][index].Context = blankInterface

@@ -1,3 +1,5 @@
+- Go Version: `1.20`
+
 go build -ldflags "-s -w"
 - https://stackoverflow.com/questions/29599209/how-to-build-a-release-version-binary-in-go
 

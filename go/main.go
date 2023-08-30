@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"hey/execution"
 	"hey/management"
-	"hey/misc"
 	"log"
 	"os"
 
@@ -38,15 +37,8 @@ func main() {
 					var modulesPtr *execution.Modules
 					modules := make(execution.Modules)
 					modulesPtr = &modules
-
 					args := c.Args().Get(0)
-					parsedRunArgs := misc.ParseRunArguments(args)
-					if len(parsedRunArgs) <= 0 {
-						log.Fatal("Run Arguments are not present")
-						os.Exit(1)
-					}
-					module, taskName := misc.GetModuleAndCommandName(parsedRunArgs)
-					modulesPtr.ProcessTask(module, taskName)
+					modulesPtr.ParseModuleAndProcessTask(args)
 					return nil
 				},
 			},
@@ -55,6 +47,11 @@ func main() {
 				Usage:     "imports configuration from a filepath",
 				UsageText: generateUsageText("import filepath"),
 				Action: func(c *cli.Context) error {
+					importPath := c.Args().Get(0)
+					err := management.Import(importPath)
+					if err != nil {
+						log.Fatal("Error : ", err)
+					}
 					return nil
 				},
 			},

@@ -2,11 +2,11 @@ package misc
 
 import "strings"
 
-func ParseRunArguments(args string) []string {
-	if len(args) == 0 {
+func ParseModuleTask(moduleTask string) []string {
+	if len(moduleTask) == 0 {
 		return []string{}
 	}
-	return strings.Split(args, ".")
+	return strings.Split(moduleTask, ".")
 }
 
 // Returns module name and task name

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"hey/utils"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -27,7 +26,7 @@ func Export(exportPath string, excludeModules []string) error {
 	if err != nil {
 		return err
 	}
-	filesContext, err := ioutil.ReadDir(modulesRootDir)
+	filesContext, err := os.ReadDir(modulesRootDir)
 	if err != nil {
 		return err
 	}
