@@ -2,13 +2,31 @@ package execution
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"unicode/utf8"
 )
 
+// func test(cmd *exec.Cmd) {
+// 	time.Sleep(4 * time.Second)
+// 	cmd.Process.Signal(syscall.SIGTERM)
+// }
+
+func captureStandardOutOrErrAndShow(stdIOutOrErrPipe io.ReadCloser) {
+	oneRuneStdOutOrErr := make([]byte, utf8.UTFMax)
+	for {
+		count, err := stdIOutOrErrPipe.Read(oneRuneStdOutOrErr)
+		if err != nil {
+			break
+		}
+		fmt.Printf("%s", oneRuneStdOutOrErr[:count])
+	}
+}
+
 func executeCommand(command string, envVars map[string]string, args ...string) {
 	// Command to execute
+	var err error
 	cmd := exec.Command(command, args...)
 	cmd.Env = os.Environ()
 	for key, value := range envVars {
@@ -35,23 +53,26 @@ func executeCommand(command string, envVars map[string]string, args ...string) {
 		fmt.Println("Error:", err)
 		return
 	}
-	oneRuneStdout := make([]byte, utf8.UTFMax)
-	for {
-		count, err := stdoutPipe.Read(oneRuneStdout)
-		if err != nil {
-			break
-		}
-		fmt.Printf("%s", oneRuneStdout[:count])
-	}
 
-	oneRuneStderr := make([]byte, utf8.UTFMax)
-	for {
-		count, err := stderrPipe.Read(oneRuneStderr)
-		if err != nil {
-			break
-		}
-		fmt.Printf("%s", oneRuneStderr[:count])
-	}
+	go captureStandardOutOrErrAndShow(stdoutPipe)
+	go captureStandardOutOrErrAndShow(stderrPipe)
+	// oneRuneStdout := make([]byte, utf8.UTFMax)
+	// for {
+	// 	count, err := stdoutPipe.Read(oneRuneStdout)
+	// 	if err != nil {
+	// 		break
+	// 	}
+	// 	fmt.Printf("%s", oneRuneStdout[:count])
+	// }
+
+	// oneRuneStderr := make([]byte, utf8.UTFMax)
+	// for {
+	// 	count, err := stderrPipe.Read(oneRuneStderr)
+	// 	if err != nil {
+	// 		break
+	// 	}
+	// 	fmt.Printf("%s", oneRuneStderr[:count])
+	// }
 
 	// // Create pipes to capture stdout and stderr
 	// stdoutPipe, err := cmd.StdoutPipe()
@@ -85,6 +106,7 @@ func executeCommand(command string, envVars map[string]string, args ...string) {
 	// 	fmt.Println("Error reading stderr:", err)
 	// 	return
 	// }
+	// go test(cmd)
 	// combinedOutput, err := cmd.CombinedOutput()
 	// if err != nil {
 	// 	fmt.Println("Error:", err)
@@ -96,7 +118,7 @@ func executeCommand(command string, envVars map[string]string, args ...string) {
 		fmt.Println("Command finished with error:", err)
 		return
 	}
-
+	// fmt.Println("Command finished")
 	// Print stdout and stderr
 	// fmt.Println(string(combinedOutput))
 	// fmt.Println("Stdout:", string(stdout))
