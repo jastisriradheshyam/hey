@@ -5,6 +5,8 @@ import (
 	"hey/misc"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func (modules *Modules) ParseModuleAndProcessTask(moduleTask string) {
@@ -26,7 +28,21 @@ func (modules *Modules) ProcessTask(moduleName string, taskName string) {
 		os.Exit(1)
 	}
 	task := *(*modules)[moduleName].Tasks[taskName]
+
+	// OS Signal is monikered so that next process in the stack can be managed
+	//  currently if process terminate signal is issued then following tasks will be skipped and main process stop
+	osSignal := make(chan os.Signal, 1)
+	signal.Notify(osSignal, syscall.SIGINT, syscall.SIGTERM)
+	var processCloseSignalIssued = false
+	go func() {
+		<-osSignal
+		processCloseSignalIssued = true
+	}()
 	for _, subTask := range task.SubTasks {
+		// Skip other processes if main process got terminate signal
+		if processCloseSignalIssued {
+			break
+		}
 		if subTask.TaskType == "spawn" {
 			executeCommand(subTask.SpawnInfo.Name, subTask.SpawnInfo.EnvVars, subTask.SpawnInfo.Args...)
 		}

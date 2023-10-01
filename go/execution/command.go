@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 	"unicode/utf8"
 )
 
@@ -13,7 +15,7 @@ import (
 // 	cmd.Process.Signal(syscall.SIGTERM)
 // }
 
-func captureStandardOutOrErrAndShow(stdIOutOrErrPipe io.ReadCloser) {
+func captureStandardOutOrErrAndShow(stdIOutOrErrPipe io.ReadCloser, stdChan chan bool) {
 	oneRuneStdOutOrErr := make([]byte, utf8.UTFMax)
 	for {
 		count, err := stdIOutOrErrPipe.Read(oneRuneStdOutOrErr)
@@ -22,11 +24,17 @@ func captureStandardOutOrErrAndShow(stdIOutOrErrPipe io.ReadCloser) {
 		}
 		fmt.Printf("%s", oneRuneStdOutOrErr[:count])
 	}
+	stdChan <- true
 }
 
 func executeCommand(command string, envVars map[string]string, args ...string) {
 	// Command to execute
 	var err error
+	stdOutChan := make(chan bool, 1)
+	stdErrChan := make(chan bool, 1)
+	osSignal := make(chan os.Signal, 1)
+	signal.Notify(osSignal, syscall.SIGINT, syscall.SIGTERM)
+
 	cmd := exec.Command(command, args...)
 	cmd.Env = os.Environ()
 	for key, value := range envVars {
@@ -54,8 +62,8 @@ func executeCommand(command string, envVars map[string]string, args ...string) {
 		return
 	}
 
-	go captureStandardOutOrErrAndShow(stdoutPipe)
-	go captureStandardOutOrErrAndShow(stderrPipe)
+	go captureStandardOutOrErrAndShow(stdoutPipe, stdOutChan)
+	go captureStandardOutOrErrAndShow(stderrPipe, stdErrChan)
 	// oneRuneStdout := make([]byte, utf8.UTFMax)
 	// for {
 	// 	count, err := stdoutPipe.Read(oneRuneStdout)
@@ -113,11 +121,20 @@ func executeCommand(command string, envVars map[string]string, args ...string) {
 	// 	return
 	// }
 	// Wait for the command to finish
+	go func() {
+		<-osSignal
+		cmd.Process.Kill()
+	}()
+	// test(cmd)
+	<-stdOutChan
+	<-stdErrChan
+
 	err = cmd.Wait()
-	if err != nil {
+	if err != nil && err.Error() != "signal: killed" {
 		fmt.Println("Command finished with error:", err)
 		return
 	}
+
 	// fmt.Println("Command finished")
 	// Print stdout and stderr
 	// fmt.Println(string(combinedOutput))
