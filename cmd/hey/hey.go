@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"hey/internal/execution"
 	"hey/internal/management"
 	"log"
@@ -20,7 +19,6 @@ const (
 
 func main() {
 	ctx := context.Background()
-	management.CheckAndInit()
 
 	app := &cli.Command{
 		Name:    AppName,
@@ -30,59 +28,9 @@ func main() {
 			mail.Address{Name: "Jasti Sri Radhe Shyam", Address: "samabhasatejsrs@outlook.com"},
 		},
 		Commands: []*cli.Command{
-			{
-				Name:        "run",
-				Aliases:     []string{"r"},
-				Usage:       "execute the task",
-				UsageText:   generateUsageText("run moduleName.taskName"),
-				Description: "run command will run the named command(s) as configured",
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					var modulesPtr *execution.Modules
-					modules := make(execution.Modules)
-					modulesPtr = &modules
-					args := cmd.Args().Get(0)
-					modulesPtr.ParseModuleAndProcessTask(args)
-					return nil
-				},
-			},
-			{
-				Name:      "import",
-				Usage:     "imports configuration from a filepath",
-				UsageText: generateUsageText("import filepath"),
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					importPath := cmd.Args().Get(0)
-					err := management.Import(importPath)
-					if err != nil {
-						log.Fatal("Error : ", err)
-					}
-					return nil
-				},
-			},
-			{
-				Name:      "export",
-				Usage:     "exports configuration (in tar file with gz compression) to current directory or to specified path",
-				UsageText: generateUsageText("export export_path"),
-				Flags: []cli.Flag{
-					&cli.StringSliceFlag{
-						Name:  "exclude",
-						Usage: "exclude modules from the exporter archive",
-						Value: []string{},
-					},
-				},
-				Action: func(ctx context.Context, cmd *cli.Command) error {
-					exportPath := cmd.Args().Get(0)
-					// flags := c.App.Flags
-					// c.Command.Flags
-					fmt.Println(cmd.Args())
-					excludeModules := cmd.StringSlice("exclude")
-					fmt.Println(excludeModules)
-					err := management.Export(exportPath, excludeModules)
-					if err != nil {
-						log.Fatal("Error : ", err)
-					}
-					return nil
-				},
-			},
+			runCommand(),
+			importCommand(),
+			exportCommand(),
 		},
 		// TODO: add remove edit, multiple, single, commands, import and export
 		// import with overwrite whole dir, overwrite (conflicting files) and merge files
@@ -96,6 +44,68 @@ func main() {
 	if err := app.Run(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func runCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "run",
+		Aliases:     []string{"r"},
+		Usage:       "execute the task",
+		UsageText:   generateUsageText("run moduleName.taskName"),
+		Description: "run command will run the named command(s) as configured",
+		Action:      runAction,
+	}
+}
+
+func runAction(ctx context.Context, cmd *cli.Command) error {
+	management.CheckAndInit()
+
+	var modulesPtr *execution.Modules
+	modules := make(execution.Modules)
+	modulesPtr = &modules
+	args := cmd.Args().Get(0)
+	modulesPtr.ParseModuleAndProcessTask(args)
+	return nil
+}
+
+func importCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "import",
+		Usage:     "imports configuration from a filepath",
+		UsageText: generateUsageText("import filepath"),
+		Action:    importAction,
+	}
+}
+
+func importAction(ctx context.Context, cmd *cli.Command) error {
+	management.CheckAndInit()
+
+	importPath := cmd.Args().Get(0)
+	return management.Import(importPath)
+}
+
+func exportCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "export",
+		Usage:     "exports configuration (in tar file with gz compression) to current directory or to specified path",
+		UsageText: generateUsageText("export export_path"),
+		Flags: []cli.Flag{
+			&cli.StringSliceFlag{
+				Name:  "exclude",
+				Usage: "exclude modules from the exporter archive",
+				Value: []string{},
+			},
+		},
+		Action: exportAction,
+	}
+}
+
+func exportAction(ctx context.Context, cmd *cli.Command) error {
+	management.CheckAndInit()
+
+	exportPath := cmd.Args().Get(0)
+	excludeModules := cmd.StringSlice("exclude")
+	return management.Export(exportPath, excludeModules)
 }
 
 func generateUsageText(text string) string {
