@@ -17,8 +17,8 @@ limitations under the License.
 package execution
 
 import (
-	config_schemas "hey/configuration/schemas"
-	"hey/management"
+	config_schemas "hey/internal/configuration/schemas"
+	"hey/internal/management"
 	"runtime"
 )
 

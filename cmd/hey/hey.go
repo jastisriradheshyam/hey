@@ -1,26 +1,10 @@
-/*
-Copyright 2023 Jasti Sri Radhe Shyam
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-		http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package main
 
 import (
 	"context"
 	"fmt"
-	"hey/execution"
-	"hey/management"
+	"hey/internal/execution"
+	"hey/internal/management"
 	"log"
 	"net/mail"
 	"os"
@@ -28,20 +12,20 @@ import (
 	cli "github.com/urfave/cli/v3"
 )
 
+const (
+	AppName        = "hey"
+	AppVersion     = "0.1.0"
+	AppDescription = "Easing CLI usage for executing tasks and managing configurations"
+)
+
 func main() {
 	ctx := context.Background()
 	management.CheckAndInit()
-	appName := "hey"
 
-	generateUsageText := func(text string) string {
-		return appName + " " + text
-	}
-
-	// in the cli config, "Usage" is short description (IDK why it's named Usage)
 	app := &cli.Command{
-		Name:    appName,
-		Usage:   "Easing CLI usage",
-		Version: "0.1.0",
+		Name:    AppName,
+		Usage:   AppDescription,
+		Version: AppVersion,
 		Authors: []any{
 			mail.Address{Name: "Jasti Sri Radhe Shyam", Address: "samabhasatejsrs@outlook.com"},
 		},
@@ -112,4 +96,8 @@ func main() {
 	if err := app.Run(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func generateUsageText(text string) string {
+	return AppName + " " + text
 }

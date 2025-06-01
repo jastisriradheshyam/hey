@@ -18,8 +18,8 @@ package management
 
 import (
 	"fmt"
-	configMod "hey/configuration"
-	utils "hey/utils"
+	configMod "hey/internal/configuration"
+	utils "hey/internal/utils"
 	"log"
 	"os"
 	"path"

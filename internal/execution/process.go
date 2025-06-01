@@ -18,7 +18,7 @@ package execution
 
 import (
 	"fmt"
-	"hey/misc"
+	"hey/internal/misc"
 	"log"
 	"os"
 	"os/signal"

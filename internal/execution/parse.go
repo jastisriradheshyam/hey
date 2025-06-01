@@ -17,7 +17,7 @@ limitations under the License.
 package execution
 
 import (
-	configMod "hey/configuration"
+	configMod "hey/internal/configuration"
 )
 
 func parseConfigToModule(config configMod.CurrentConfigSchema) {

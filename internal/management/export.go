@@ -21,7 +21,7 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
-	"hey/utils"
+	"hey/internal/utils"
 	"io"
 	"log"
 	"os"

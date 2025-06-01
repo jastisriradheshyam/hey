@@ -17,7 +17,7 @@ limitations under the License.
 package configuration
 
 import (
-	schemas "hey/configuration/schemas"
+	schemas "hey/internal/configuration/schemas"
 
 	yaml "gopkg.in/yaml.v3"
 )
