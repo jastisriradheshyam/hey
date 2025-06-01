@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"hey/internal/execution"
-	"hey/internal/management"
 	"log"
 	"net/mail"
 	"os"
@@ -44,68 +42,6 @@ func main() {
 	if err := app.Run(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func runCommand() *cli.Command {
-	return &cli.Command{
-		Name:        "run",
-		Aliases:     []string{"r"},
-		Usage:       "execute the task",
-		UsageText:   generateUsageText("run moduleName.taskName"),
-		Description: "run command will run the named command(s) as configured",
-		Action:      runAction,
-	}
-}
-
-func runAction(ctx context.Context, cmd *cli.Command) error {
-	management.CheckAndInit()
-
-	var modulesPtr *execution.Modules
-	modules := make(execution.Modules)
-	modulesPtr = &modules
-	args := cmd.Args().Get(0)
-	modulesPtr.ParseModuleAndProcessTask(args)
-	return nil
-}
-
-func importCommand() *cli.Command {
-	return &cli.Command{
-		Name:      "import",
-		Usage:     "imports configuration from a filepath",
-		UsageText: generateUsageText("import filepath"),
-		Action:    importAction,
-	}
-}
-
-func importAction(ctx context.Context, cmd *cli.Command) error {
-	management.CheckAndInit()
-
-	importPath := cmd.Args().Get(0)
-	return management.Import(importPath)
-}
-
-func exportCommand() *cli.Command {
-	return &cli.Command{
-		Name:      "export",
-		Usage:     "exports configuration (in tar file with gz compression) to current directory or to specified path",
-		UsageText: generateUsageText("export export_path"),
-		Flags: []cli.Flag{
-			&cli.StringSliceFlag{
-				Name:  "exclude",
-				Usage: "exclude modules from the exporter archive",
-				Value: []string{},
-			},
-		},
-		Action: exportAction,
-	}
-}
-
-func exportAction(ctx context.Context, cmd *cli.Command) error {
-	management.CheckAndInit()
-
-	exportPath := cmd.Args().Get(0)
-	excludeModules := cmd.StringSlice("exclude")
-	return management.Export(exportPath, excludeModules)
 }
 
 func generateUsageText(text string) string {
